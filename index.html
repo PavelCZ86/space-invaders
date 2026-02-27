@@ -10,243 +10,167 @@ canvas{display:block;margin:auto;background:black;}
 </head>
 <body>
 
-<canvas id="game"></canvas>
+<canvas id="game" width="600" height="800" tabindex="1"></canvas>
 
 <script>
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
-canvas.width=600;
-canvas.height=800;
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-let lives=3, score=0, gameOver=false;
+// zajistí, že canvas má focus a dostane klávesy
+canvas.focus();
+
+let lives = 3, score = 0, gameOver = false;
 
 /* ===== STARS ===== */
-function starLayer(n,s){
- return Array.from({length:n},()=>({
-  x:Math.random()*canvas.width,
-  y:Math.random()*canvas.height,
-  size:Math.random()*2+1,
-  speed:s
- }));
+function starLayer(n, s) {
+  return Array.from({length:n}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random()*2+1,
+    speed: s
+  }));
 }
-const stars=[starLayer(60,0.3),starLayer(40,0.6),starLayer(25,1.2)];
-
-function updateStars(){
- stars.forEach(l=>l.forEach(st=>{
-  st.y+=st.speed;
-  if(st.y>canvas.height)st.y=0;
- }));
-}
-function drawStars(){
- ctx.fillStyle="white";
- stars.forEach(l=>l.forEach(st=>ctx.fillRect(st.x,st.y,st.size,st.size)));
-}
+const stars = [starLayer(60,0.3), starLayer(40,0.6), starLayer(25,1.2)];
+function updateStars(){ stars.forEach(l=>l.forEach(st=>{st.y+=st.speed;if(st.y>canvas.height)st.y=0;})); }
+function drawStars(){ ctx.fillStyle="white"; stars.forEach(l=>l.forEach(st=>ctx.fillRect(st.x,st.y,st.size,st.size))); }
 
 /* ===== PLAYER ===== */
 const player={x:275,y:720,w:60,h:70,speed:6};
-
 function drawPlayer(p){
- ctx.fillStyle="#3a7bd5";
- ctx.fillRect(p.x+15,p.y+40,30,28);
-
- ctx.fillStyle="#ffd90f";
- ctx.beginPath();
- ctx.arc(p.x+30,p.y+28,22,0,Math.PI*2);
- ctx.fill();
-
- ctx.beginPath();
- ctx.arc(p.x+8,p.y+28,5,0,Math.PI*2);
- ctx.arc(p.x+52,p.y+28,5,0,Math.PI*2);
- ctx.fill();
-
- ctx.fillStyle="white";
- ctx.beginPath();
- ctx.arc(p.x+22,p.y+25,7,0,Math.PI*2);
- ctx.arc(p.x+38,p.y+25,7,0,Math.PI*2);
- ctx.fill();
-
- ctx.fillStyle="black";
- ctx.beginPath();
- ctx.arc(p.x+22,p.y+25,3,0,Math.PI*2);
- ctx.arc(p.x+38,p.y+25,3,0,Math.PI*2);
- ctx.fill();
-
- ctx.beginPath();
- ctx.arc(p.x+30,p.y+32,3,0,Math.PI*2);
- ctx.fill();
-
- ctx.beginPath();
- ctx.arc(p.x+30,p.y+34,12,0,Math.PI);
- ctx.stroke();
-
- ctx.beginPath();
- ctx.moveTo(p.x+18,p.y+6);
- ctx.lineTo(p.x+25,p.y+10);
- ctx.lineTo(p.x+32,p.y+6);
- ctx.stroke();
+ ctx.fillStyle="#3a7bd5"; ctx.fillRect(p.x+15,p.y+40,30,28);
+ ctx.fillStyle="#ffd90f"; ctx.beginPath(); ctx.arc(p.x+30,p.y+28,22,0,Math.PI*2); ctx.fill();
+ ctx.beginPath(); ctx.arc(p.x+8,p.y+28,5,0,Math.PI*2); ctx.arc(p.x+52,p.y+28,5,0,Math.PI*2); ctx.fill();
+ ctx.fillStyle="white"; ctx.beginPath(); ctx.arc(p.x+22,p.y+25,7,0,Math.PI*2); ctx.arc(p.x+38,p.y+25,7,0,Math.PI*2); ctx.fill();
+ ctx.fillStyle="black"; ctx.beginPath(); ctx.arc(p.x+22,p.y+25,3,0,Math.PI*2); ctx.arc(p.x+38,p.y+25,3,0,Math.PI*2); ctx.fill();
+ ctx.beginPath(); ctx.arc(p.x+30,p.y+32,3,0,Math.PI*2); ctx.fill();
+ ctx.beginPath(); ctx.arc(p.x+30,p.y+34,12,0,Math.PI); ctx.stroke();
+ ctx.beginPath(); ctx.moveTo(p.x+18,p.y+6); ctx.lineTo(p.x+25,p.y+10); ctx.lineTo(p.x+32,p.y+6); ctx.stroke();
 }
 
 /* ===== BULLETS ===== */
 let bullets=[];
-document.addEventListener("keydown",e=>{
- if(e.key===" "&&!gameOver){
-  bullets.push({x:player.x+27,y:player.y,w:6,h:18,speed:9});
- }
-});
+function fireBullet(){
+  bullets.push({x:player.x+27, y:player.y, w:6, h:18, speed:9});
+}
 
 /* ===== ENEMIES ===== */
-let enemies=[],dir=1;
+let enemies=[], dir=1;
 function spawn(){
- enemies=[];
- for(let r=0;r<4;r++){
-  for(let c=0;c<8;c++){
-   enemies.push({x:60+c*60,y:60+r*60,w:46,h:46});
+  enemies=[];
+  for(let r=0;r<4;r++){
+    for(let c=0;c<8;c++){
+      enemies.push({x:60+c*60, y:60+r*60, w:46, h:46});
+    }
   }
- }
 }
 spawn();
 
 function drawAlien(a){
- ctx.fillStyle="#3cff7a";
- ctx.beginPath();
- ctx.arc(a.x+23,a.y+23,18,0,Math.PI*2);
- ctx.fill();
-
- ctx.fillStyle="#2ab35a";
- ctx.beginPath();
- ctx.arc(a.x+23,a.y+16,15,Math.PI,0);
- ctx.fill();
-
- ctx.fillStyle="white";
- ctx.beginPath();
- ctx.arc(a.x+23,a.y+22,8,0,Math.PI*2);
- ctx.fill();
-
- ctx.fillStyle="black";
- ctx.beginPath();
- ctx.arc(a.x+23,a.y+22,3,0,Math.PI*2);
- ctx.fill();
-
- ctx.beginPath();
- ctx.arc(a.x+23,a.y+32,10,Math.PI,0,true);
- ctx.stroke();
-
- ctx.beginPath();
- ctx.moveTo(a.x+10,a.y+8);
- ctx.lineTo(a.x+5,a.y);
- ctx.moveTo(a.x+36,a.y+8);
- ctx.lineTo(a.x+41,a.y);
- ctx.stroke();
+ ctx.fillStyle="#3cff7a"; ctx.beginPath(); ctx.arc(a.x+23,a.y+23,18,0,Math.PI*2); ctx.fill();
+ ctx.fillStyle="#2ab35a"; ctx.beginPath(); ctx.arc(a.x+23,a.y+16,15,Math.PI,0); ctx.fill();
+ ctx.fillStyle="white"; ctx.beginPath(); ctx.arc(a.x+23,a.y+22,8,0,Math.PI*2); ctx.fill();
+ ctx.fillStyle="black"; ctx.beginPath(); ctx.arc(a.x+23,a.y+22,3,0,Math.PI*2); ctx.fill();
+ ctx.beginPath(); ctx.arc(a.x+23,a.y+32,10,Math.PI,0,true); ctx.stroke();
+ ctx.beginPath(); ctx.moveTo(a.x+10,a.y+8); ctx.lineTo(a.x+5,a.y); ctx.moveTo(a.x+36,a.y+8); ctx.lineTo(a.x+41,a.y); ctx.stroke();
 }
 
 /* ===== EXPLOSIONS ===== */
 let explosions=[];
-function explode(x,y){explosions.push({x,y,r:2,life:18});}
-function updateExplosions(){
- explosions.forEach(e=>{e.r+=1.6;e.life--;});
- explosions=explosions.filter(e=>e.life>0);
-}
-function drawExplosions(){
- explosions.forEach(e=>{
-  ctx.strokeStyle="orange";
-  ctx.beginPath();
-  ctx.arc(e.x,e.y,e.r,0,Math.PI*2);
-  ctx.stroke();
- });
-}
+function explode(x,y){ explosions.push({x,y,r:2,life:18}); }
+function updateExplosions(){ explosions.forEach(e=>{e.r+=1.6;e.life--;}); explosions=explosions.filter(e=>e.life>0); }
+function drawExplosions(){ explosions.forEach(e=>{ ctx.strokeStyle="orange"; ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.stroke(); }); }
 
 /* ===== INPUT ===== */
 let keys={};
-document.addEventListener("keydown",e=>keys[e.key]=true);
-document.addEventListener("keyup",e=>keys[e.key]=false);
+
+window.addEventListener("keydown", e => {
+  if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"," "].includes(e.key)){
+    e.preventDefault(); // zablokuje scrollování stránky
+  }
+  keys[e.key] = true;
+
+  // mezerník střílí
+  if(e.key === " " && !gameOver) fireBullet();
+});
+
+window.addEventListener("keyup", e => { keys[e.key] = false; });
 
 /* ===== UPDATE ===== */
 function update(){
- if(gameOver)return;
+  if(gameOver) return;
 
- updateStars();
- updateExplosions();
+  updateStars();
+  updateExplosions();
 
- if(keys["ArrowLeft"])player.x-=player.speed;
- if(keys["ArrowRight"])player.x+=player.speed;
- player.x=Math.max(0,Math.min(canvas.width-player.w,player.x));
+  if(keys["ArrowLeft"]) player.x -= player.speed;
+  if(keys["ArrowRight"]) player.x += player.speed;
+  player.x = Math.max(0, Math.min(canvas.width-player.w, player.x));
 
- bullets.forEach(b=>b.y-=b.speed);
- bullets=bullets.filter(b=>b.y>-20);
+  bullets.forEach(b=>b.y -= b.speed);
+  bullets = bullets.filter(b=>b.y>-20);
 
- let edge=false;
- enemies.forEach(e=>{
-  e.x+=dir*1.2;
-  if(e.x<10||e.x+e.w>canvas.width-10)edge=true;
-  if(e.y>700){lives--;spawn();}
- });
- if(edge){dir*=-1;enemies.forEach(e=>e.y+=20);}
-
- bullets.forEach((b,bi)=>{
-  enemies.forEach((e,ei)=>{
-   if(b.x<e.x+e.w&&b.x+b.w>e.x&&b.y<e.y+e.h&&b.y+b.h>e.y){
-    explode(e.x+23,e.y+23);
-    enemies.splice(ei,1);
-    bullets.splice(bi,1);
-    score+=1;
-   }
+  let edge=false;
+  enemies.forEach(e=>{
+    e.x += dir*1.2;
+    if(e.x<10 || e.x+e.w>canvas.width-10) edge=true;
+    if(e.y>700){ lives--; spawn(); }
   });
- });
+  if(edge){ dir*=-1; enemies.forEach(e=>e.y+=20); }
 
- if(enemies.length===0)spawn();
- if(lives<=0)gameOver=true;
+  bullets.forEach((b,bi)=>{
+    enemies.forEach((e,ei)=>{
+      if(b.x<e.x+e.w && b.x+b.w>e.x && b.y<e.y+e.h && b.y+b.h>e.y){
+        explode(e.x+23, e.y+23);
+        enemies.splice(ei,1);
+        bullets.splice(bi,1);
+        score+=1;
+      }
+    });
+  });
+
+  if(enemies.length===0) spawn();
+  if(lives<=0) gameOver=true;
 }
 
 /* ===== DRAW ===== */
 function draw(){
- ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
- drawStars();
- drawPlayer(player);
+  drawStars();
+  drawPlayer(player);
 
- // výrazná střela
- bullets.forEach(b=>{
-  ctx.shadowColor="yellow";
-  ctx.shadowBlur=12;
-  ctx.fillStyle="orange";
-  ctx.fillRect(b.x,b.y,b.w,b.h);
-  ctx.fillStyle="yellow";
-  ctx.fillRect(b.x+1,b.y+2,b.w-2,b.h-4);
-  ctx.shadowBlur=0;
-  ctx.fillStyle="rgba(255,200,0,0.4)";
-  ctx.fillRect(b.x+2,b.y+b.h,2,6);
- });
+  bullets.forEach(b=>{
+    ctx.shadowColor="yellow"; ctx.shadowBlur=12; ctx.fillStyle="orange"; ctx.fillRect(b.x,b.y,b.w,b.h);
+    ctx.fillStyle="yellow"; ctx.fillRect(b.x+1,b.y+2,b.w-2,b.h-4); ctx.shadowBlur=0;
+    ctx.fillStyle="rgba(255,200,0,0.4)"; ctx.fillRect(b.x+2,b.y+b.h,2,6);
+  });
 
- enemies.forEach(drawAlien);
- drawExplosions();
+  enemies.forEach(drawAlien);
+  drawExplosions();
 
- ctx.fillStyle="white";
- ctx.font="20px Arial";
- ctx.fillText("Skóre: "+score,20,30);
- ctx.fillText("Životy: "+lives,480,30);
+  ctx.fillStyle="white"; ctx.font="20px Arial";
+  ctx.fillText("Skóre: "+score,20,30); ctx.fillText("Životy: "+lives,480,30);
 
- if(gameOver){
-  ctx.fillStyle="rgba(0,0,0,0.6)";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle="white";
-  ctx.font="48px Arial";
-  ctx.textAlign="center";
-  ctx.fillText("GAME OVER",300,360);
-  ctx.font="24px Arial";
-  ctx.fillText("Stiskni R pro restart",300,420);
- }
+  if(gameOver){
+    ctx.fillStyle="rgba(0,0,0,0.6)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="white"; ctx.font="48px Arial"; ctx.textAlign="center";
+    ctx.fillText("GAME OVER",300,360);
+    ctx.font="24px Arial";
+    ctx.fillText("Stiskni R pro restart",300,420);
+  }
 }
 
 /* ===== LOOP ===== */
-function loop(){update();draw();requestAnimationFrame(loop);}
+function loop(){ update(); draw(); requestAnimationFrame(loop); }
 loop();
 
 /* ===== RESTART ===== */
-document.addEventListener("keydown",e=>{
- if(e.key==="r"&&gameOver){
-  lives=3;score=0;gameOver=false;
-  bullets=[];explosions=[];spawn();
- }
+window.addEventListener("keydown", e=>{
+  if(e.key==="r" && gameOver){
+    lives=3; score=0; gameOver=false;
+    bullets=[]; explosions=[]; spawn();
+  }
 });
 </script>
 
